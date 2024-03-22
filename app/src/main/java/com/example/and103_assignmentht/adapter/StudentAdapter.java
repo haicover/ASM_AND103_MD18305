@@ -1,5 +1,6 @@
 package com.example.and103_assignmentht.adapter;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -70,16 +71,16 @@ public class StudentAdapter extends BaseAdapter {
                                     if (response.isSuccessful()) {
                                         mList.remove(student);
                                         notifyDataSetChanged();
-                                        Toast.makeText(context, "Deleted Successfully", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(context, "Đã xoá thành công", Toast.LENGTH_SHORT).show();
                                     } else {
-                                        Toast.makeText(context, "Delete failed. Error code: " + response.code(), Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(context, "Xóa không thành công. Mã lỗi: " + response.code(), Toast.LENGTH_SHORT).show();
                                     }
                                 }
 
                                 @Override
                                 public void onFailure(Call<List<StudentModel>> call, Throwable t) {
-                                    Log.e("DeleteStudent", "Failed to delete student: " + t.getMessage());
-                                    Toast.makeText(context, "Delete failed. Please check your internet connection.", Toast.LENGTH_SHORT).show();
+                                    Log.e("DeleteStudent", "Không thể xóa học sinh: " + t.getMessage());
+                                    Toast.makeText(context, "Xóa không thành công. Xin vui lòng kiểm tra kết nối Internet của bạn", Toast.LENGTH_SHORT).show();
                                 }
                             });
                 }
@@ -88,5 +89,4 @@ public class StudentAdapter extends BaseAdapter {
 
         return view1;
     }
-
 }

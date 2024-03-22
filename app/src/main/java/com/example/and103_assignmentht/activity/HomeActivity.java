@@ -1,6 +1,7 @@
 package com.example.and103_assignmentht.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,14 +13,17 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.example.and103_assignmentht.R;
 import com.example.and103_assignmentht.adapter.StudentAdapter;
 import com.example.and103_assignmentht.model.StudentModel;
 import com.example.and103_assignmentht.service.ApiServices;
 import com.example.and103_assignmentht.service.HttpRequest;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -107,22 +111,22 @@ public class HomeActivity extends AppCompatActivity {
                                         public void onResponse(Call<List<StudentModel>> call, Response<List<StudentModel>> response) {
                                             if (response.isSuccessful()) {
                                                 // Xử lý thành công khi cập nhật sinh viên
-                                                List<StudentModel> updatedStudent = response.body();
-                                                models.set(i, (StudentModel) updatedStudent);
+
+                                                models.set(i, student);
                                                 adapter.notifyDataSetChanged();
-                                                Log.d("UpdateStudent", "Student has been updated successfully: ");
+                                                Toast.makeText(HomeActivity.this, "Cập nhật thành công", Toast.LENGTH_SHORT).show();
                                             } else {
-                                                // Xử lý khi gặp lỗi từ máy chủ
-                                                Log.e("UpdateStudent", "Failed to update student. Error code: " + response.code());
+                                                Toast.makeText(HomeActivity.this, "Cập nhật không thành công. Mã lỗi: " + response.code(), Toast.LENGTH_SHORT).show();
                                             }
+                                            dialog.dismiss();
                                         }
                                         @Override
                                         public void onFailure(Call<List<StudentModel>> call, Throwable t) {
-                                            Log.e("UpdateStudent", "Failed to update student: " + t.getMessage());
+                                            Log.e("UpdateStudent", "Không thể cập nhật học sinh: " + t.getMessage());
+                                            Toast.makeText(HomeActivity.this, "Cập nhật không thành công. Xin vui lòng kiểm tra kết nối Internet của bạn.", Toast.LENGTH_SHORT).show();
+                                            dialog.dismiss();
                                         }
                                     });
-                            // Đóng dialog sau khi hoàn tất
-                            dialog.dismiss();
                         } else {
                             // Hiển thị thông báo nếu các trường thông tin không được nhập đầy đủ
                             Toast.makeText(HomeActivity.this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show();
@@ -131,10 +135,11 @@ public class HomeActivity extends AppCompatActivity {
                 });
                 // Hiển thị dialog sửa item
                 dialog.show();
-                return true; // Set to true to indicate that the event is consumed
+                return true;
             }
         });
     }
+
     private void bottomNavigation() {
         ImageView personBtn = findViewById(R.id.btnPerson);
 
@@ -159,6 +164,7 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
     }
+
     private void showAddItemDialog() {
         Dialog dialog = new Dialog(HomeActivity.this);
         dialog.setContentView(R.layout.item_add_student);
@@ -188,10 +194,11 @@ public class HomeActivity extends AppCompatActivity {
                             adapter.notifyDataSetChanged(); // Notify the adapter of the data change
                             Toast.makeText(HomeActivity.this, "Student added successfully", Toast.LENGTH_SHORT).show();
                         }
+
                         @Override
                         public void onFailure(Call<List<StudentModel>> call, Throwable t) {
                             Log.e("HomeActivity", "Failed to add student: " + t.getMessage());
-                            Toast.makeText(HomeActivity.this, "Thêm sinh viên thất bại", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(HomeActivity.this, "Thêm sinh viên thành công", Toast.LENGTH_SHORT).show();
                         }
                     });
                     // Dismiss dialog sau khi thêm thành công
