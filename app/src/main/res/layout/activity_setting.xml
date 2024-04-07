@@ -12,8 +12,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="90dp"
-        android:background="#F1BFFA"
         android:gravity="center_vertical"
         android:orientation="vertical">
 
@@ -47,7 +45,7 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/coordinatorLayout"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
+        android:layout_height="50dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -57,7 +55,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_marginTop="20dp"
             android:backgroundTint="#C8C5C5"
             app:fabCradleMargin="8dp"
             app:fabCradleRoundedCornerRadius="50dp"
@@ -95,14 +92,9 @@
                         android:id="@+id/btnChat"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:srcCompat="@drawable/chat" />
+                        app:srcCompat="@drawable/fruits" />
                 </LinearLayout>
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="0.2"
-                    android:orientation="vertical"></LinearLayout>
 
                 <LinearLayout
                     android:id="@+id/personBtn"
@@ -116,7 +108,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        app:srcCompat="@drawable/person" />
+                        app:srcCompat="@drawable/cart" />
 
                 </LinearLayout>
 
@@ -138,19 +130,6 @@
             </LinearLayout>
         </com.google.android.material.bottomappbar.BottomAppBar>
 
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/cartBtn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:backgroundTint="#ff5e00"
-            android:elevation="3dp"
-            android:src="@drawable/baseline_add_24"
-            app:backgroundTint="#ff5e00"
-            app:layout_constraintBottom_toTopOf="@+id/coordinatorLayout"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/coordinatorLayout" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

@@ -1,43 +1,45 @@
 package com.example.and103_assignmentht.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
-import android.widget.AdapterView;
+import android.view.inputmethod.EditorInfo;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.and103_assignmentht.R;
-import com.example.and103_assignmentht.adapter.StudentAdapter;
-import com.example.and103_assignmentht.model.StudentModel;
-import com.example.and103_assignmentht.service.ApiServices;
+import com.example.and103_assignmentht.adapter.DistributorAdapter;
+import com.example.and103_assignmentht.model.Distributor;
 import com.example.and103_assignmentht.service.HttpRequest;
+import com.example.and103_assignmentht.model.Response;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
-import java.util.List;
+
+
 
 import retrofit2.Call;
 import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
-public class HomeActivity extends AppCompatActivity {
 
-    ListView lvStudent;
-    List<StudentModel> models = new ArrayList<>();
-    StudentAdapter adapter;
-    FloatingActionButton cartBtn;
-    HttpRequest httpRequest = new HttpRequest();
-
+public class HomeActivity extends AppCompatActivity implements DistributorAdapter.DistributorClick {
+    private HttpRequest httpRequest;
+    private ArrayList<Distributor> list = new ArrayList<>();
+    private DistributorAdapter adapter;
+    private static final String TAG = "HomeActivity";
+    EditText ed_search;
+    RecyclerView rcv_distributor;
+    FloatingActionButton btnAdd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,113 +49,50 @@ public class HomeActivity extends AppCompatActivity {
 
         bottomNavigation();
 
-        lvStudent = findViewById(R.id.lvStudent);
-        cartBtn = findViewById(R.id.cartBtn);
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://65d076a6ab7beba3d5e327fb.mockapi.io/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        ApiServices apiServices = retrofit.create(ApiServices.class);
-        Call<ArrayList<StudentModel>> call = apiServices.getStudents();
-        call.enqueue(new Callback<ArrayList<StudentModel>>() {
+        httpRequest = new HttpRequest();
+        httpRequest.callAPI()
+                .getListDistributor()
+                .enqueue(getDistributorAPI);
+        ed_search = findViewById(R.id.ed_search);
+        rcv_distributor = findViewById(R.id.rcv_distributor);
+        btnAdd = findViewById(R.id.btnAdd);
+
+        ed_search.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public void onResponse(Call<ArrayList<StudentModel>> call, Response<ArrayList<StudentModel>> response) {
-                if (response.isSuccessful()) {
-                    models = response.body();
-                    adapter = new StudentAdapter(getApplicationContext(), models);
-                    lvStudent.setAdapter(adapter);
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+
+                    String key = ed_search.getText().toString().trim();
+                    httpRequest.callAPI()
+                            .searchDistributor(key)
+                            .enqueue(getDistributorAPI);
+                    Log.d(TAG, "onEditorAction: " + key);
+                    return true;
                 }
+                return false;
             }
+        });
+        btnAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDialogAdd();
+            }
+        });
 
-            @Override
-            public void onFailure(Call<ArrayList<StudentModel>> call, Throwable t) {
-                Log.e("Main", t.getMessage());
-            }
-        });
-        //thémv
-        cartBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showAddItemDialog();
-            }
-        });
-        lvStudent.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Dialog dialog = new Dialog(HomeActivity.this);
-                dialog.setContentView(R.layout.item_update_student);
-                // Ánh xạ các view trong dialog
-                EditText upName = dialog.findViewById(R.id.upName);
-                EditText upMssv = dialog.findViewById(R.id.upMssv);
-                TextView btnUpdate = dialog.findViewById(R.id.btnUpdate);
-                // Lấy thông tin của sinh viên tại vị trí position
-                StudentModel student = models.get(i);
-                // Điền dữ liệu hiện tại của sinh viên vào các trường EditText
-                upName.setText(student.getName());
-                upMssv.setText(student.getMssv());
-                // Xử lý sự kiện khi nhấn nút "Sửa"
-                btnUpdate.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        // Lấy dữ liệu đã sửa từ các trường EditText
-                        String updatedName = upName.getText().toString().trim();
-                        String updatedMssv = upMssv.getText().toString().trim();
-                        // Kiểm tra nếu dữ liệu không trống
-                        if (!updatedName.isEmpty() && !updatedMssv.isEmpty()) {
-                            // Cập nhật thông tin của sinh viên
-                            student.setName(updatedName);
-                            student.setMssv(updatedMssv);
-                            // Gọi API để cập nhật sinh viên
-                            httpRequest.callAPI()
-                                    .updateStudent(student.getid(), student)
-                                    .enqueue(new Callback<List<StudentModel>>() {
-                                        @Override
-                                        public void onResponse(Call<List<StudentModel>> call, Response<List<StudentModel>> response) {
-                                            if (response.isSuccessful()) {
-                                                // Xử lý thành công khi cập nhật sinh viên
-
-                                                models.set(i, student);
-                                                adapter.notifyDataSetChanged();
-                                                Toast.makeText(HomeActivity.this, "Cập nhật thành công", Toast.LENGTH_SHORT).show();
-                                            } else {
-                                                Toast.makeText(HomeActivity.this, "Cập nhật không thành công. Mã lỗi: " + response.code(), Toast.LENGTH_SHORT).show();
-                                            }
-                                            dialog.dismiss();
-                                        }
-                                        @Override
-                                        public void onFailure(Call<List<StudentModel>> call, Throwable t) {
-                                            Log.e("UpdateStudent", "Không thể cập nhật học sinh: " + t.getMessage());
-                                            Toast.makeText(HomeActivity.this, "Cập nhật không thành công. Xin vui lòng kiểm tra kết nối Internet của bạn.", Toast.LENGTH_SHORT).show();
-                                            dialog.dismiss();
-                                        }
-                                    });
-                        } else {
-                            // Hiển thị thông báo nếu các trường thông tin không được nhập đầy đủ
-                            Toast.makeText(HomeActivity.this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-                // Hiển thị dialog sửa item
-                dialog.show();
-                return true;
-            }
-        });
     }
-
     private void bottomNavigation() {
         ImageView personBtn = findViewById(R.id.btnPerson);
-
         personBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(HomeActivity.this, PersonActivity.class));
+                startActivity(new Intent(HomeActivity.this, CartActivity.class));
             }
         });
         ImageView btnChat = findViewById(R.id.btnChat);
         btnChat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(HomeActivity.this, ChatActivity.class));
+                startActivity(new Intent(HomeActivity.this, FruitActivity.class));
             }
         });
         ImageView btnSetting = findViewById(R.id.btnSetting);
@@ -165,47 +104,127 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    private void showAddItemDialog() {
+    private void showDialogAdd() {
         Dialog dialog = new Dialog(HomeActivity.this);
-        dialog.setContentView(R.layout.item_add_student);
-        // Ánh xạ các view trong layout item_add
-        EditText addName = dialog.findViewById(R.id.addName);
-        EditText addMssv = dialog.findViewById(R.id.addMssv);
-        TextView btnAdd = dialog.findViewById(R.id.btnAdd);
-        // Xử lý sự kiện click cho button Thêm
-        btnAdd.setOnClickListener(new View.OnClickListener() {
+        dialog.setContentView(R.layout.dialog_add);
+
+        EditText add_name = dialog.findViewById(R.id.add_name);
+        Button btnThem  = dialog.findViewById(R.id.btnThem);
+
+        btnThem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Lấy thông tin từ các trường nhập
-                String name = addName.getText().toString();
-                String mssv = addMssv.getText().toString();
-                if (name.isEmpty() || mssv.isEmpty()) {
-                    Toast.makeText(HomeActivity.this, "Vui lòng điền đầy đủ thông tin", Toast.LENGTH_SHORT).show();
-                } else {
-                    // Thực hiện thêm sinh viên vào danh sách hoặc gọi API để thêm vào cơ sở dữ liệu
-                    StudentModel newStudent = new StudentModel();
-                    newStudent.setName(name);
-                    newStudent.setMssv(mssv);
-                    httpRequest.callAPI().addStudent(newStudent).enqueue(new Callback<List<StudentModel>>() {
-                        @Override
-                        public void onResponse(Call<List<StudentModel>> call, Response<List<StudentModel>> response) {
-                            List<StudentModel> newStudents = response.body();
-                            models.addAll(newStudents); // Add all students from the response
-                            adapter.notifyDataSetChanged(); // Notify the adapter of the data change
-                            Toast.makeText(HomeActivity.this, "Student added successfully", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onFailure(Call<List<StudentModel>> call, Throwable t) {
-                            Log.e("HomeActivity", "Failed to add student: " + t.getMessage());
-                            Toast.makeText(HomeActivity.this, "Thêm sinh viên thành công", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    // Dismiss dialog sau khi thêm thành công
+                String name = add_name.getText().toString().trim();
+                if (name.isEmpty()) {
+                    Toast.makeText(HomeActivity.this, "you must enter name", Toast.LENGTH_SHORT).show();
+                }   else {
+                    Distributor distributor = new Distributor();
+                    distributor.setName(name);
+                    httpRequest.callAPI()
+                            .addDistributor(distributor)
+                            .enqueue(responseDistributorAPI);
                     dialog.dismiss();
                 }
             }
         });
         dialog.show();
+    }
+
+
+
+
+    private void getData() {
+        adapter = new DistributorAdapter(list, this,this );
+        rcv_distributor.setAdapter(adapter);
+    }
+
+
+    Callback<Response<ArrayList<Distributor>>> getDistributorAPI = new Callback<Response<ArrayList<Distributor>>>() {
+        @Override
+        public void onResponse(Call<Response<ArrayList<Distributor>>> call, retrofit2.Response<Response<ArrayList<Distributor>>> response) {
+            if (response.isSuccessful()) {
+                if (response.body().getStatus() == 200) {
+                    list = response.body().getData();
+                    getData();
+                    Log.d(TAG, "onResponse: "+ list.size());
+                }
+            }
+        }
+        @Override
+        public void onFailure(Call<Response<ArrayList<Distributor>>> call, Throwable t) {
+            Log.e(TAG, "onFailure: "+ t.getMessage() );
+        }
+
+
+    };
+
+
+    Callback<Response<Distributor>> responseDistributorAPI  = new Callback<Response<Distributor>>() {
+        @Override
+        public void onResponse(Call<Response<Distributor>> call, retrofit2.Response<Response<Distributor>> response) {
+            if (response.isSuccessful()) {
+                if (response.body().getStatus() == 200) {
+                    httpRequest.callAPI()
+                            .getListDistributor()
+                            .enqueue(getDistributorAPI);
+                    Toast.makeText(HomeActivity.this, response.body().getMessenger(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+
+        @Override
+        public void onFailure(Call<Response<Distributor>> call, Throwable t) {
+            Log.e(TAG, "onFailure: "+t.getMessage() );
+        }
+    };
+
+    private void showDialogEdit(String id,Distributor distributor) {
+        Dialog dialog = new Dialog(HomeActivity.this);
+        dialog.setContentView(R.layout.dialog_update);
+
+        EditText up_name = dialog.findViewById(R.id.up_name);
+        Button btnUpdate  = dialog.findViewById(R.id.btnUpdate);
+
+        String distributorName = distributor.getName();
+        up_name.setText(distributorName);
+
+        btnUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = distributor.getName();
+
+                if (name.isEmpty()) {
+                    Toast.makeText(HomeActivity.this, "you must enter name", Toast.LENGTH_SHORT).show();
+                }   else {
+
+                    Distributor distributor1 = new Distributor();
+                    distributor1.setName(up_name.getText().toString().trim());
+                    httpRequest.callAPI()
+                            .updateDistributor(id,distributor1)
+                            .enqueue(responseDistributorAPI);
+                    dialog.dismiss();
+                }
+            }
+        });
+        dialog.show();
+    }
+    @Override
+    public void delete(Distributor distributor) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Confirm delete");
+        builder.setMessage("Are you sure you want to delete?");
+        builder.setPositiveButton("yes", (dialog, which) -> {
+            httpRequest.callAPI()
+                    .deleteDistributor(distributor.getId())
+                    .enqueue(responseDistributorAPI);
+        });
+        builder.setNegativeButton("no", (dialog, which) -> {
+            dialog.dismiss();
+        });
+        builder.show();
+    }
+    @Override
+    public void edit(String id,Distributor distributor) {
+        showDialogEdit(id,distributor);
     }
 }

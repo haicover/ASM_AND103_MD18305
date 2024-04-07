@@ -44,14 +44,14 @@ public class SettingActivity extends AppCompatActivity {
         personBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(SettingActivity.this, PersonActivity.class));
+                startActivity(new Intent(SettingActivity.this, CartActivity.class));
             }
         });
         ImageView btnChat = findViewById(R.id.btnChat);
         btnChat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(SettingActivity.this, ChatActivity.class));
+                startActivity(new Intent(SettingActivity.this, FruitActivity.class));
             }
         });
         ImageView btnHome = findViewById(R.id.btnHome);
